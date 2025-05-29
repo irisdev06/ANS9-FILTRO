@@ -19,6 +19,7 @@ opcion = st.sidebar.selectbox(
     ["📅 Filtro por Fechas de Corte y Termino", "📊 Base Courier"]
 )
 
+# PROCESO 1 - FILTRO POR FECHAS Y TERMINO --
 if opcion == "📅 Filtro por Fechas de Corte y Termino":
     st.title("📅 Filtro ANS9 - Fechas de Corte y Término")
 
@@ -30,95 +31,78 @@ if opcion == "📅 Filtro por Fechas de Corte y Termino":
         if "DTO" in xls.sheet_names and "PCL" in xls.sheet_names:
             df_dto = pd.read_excel(xls, sheet_name="DTO")
             df_pcl = pd.read_excel(xls, sheet_name="PCL")
-            # Información General
-            st.header("🔎 Información General:")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("📑 Estados Encontradas en tu Archivo DTO:")
-                st.dataframe(df_dto["ESTADO_INFORME"].dropna().unique())
-            with col2:
-                st.write("📑 Estados Encontradas en tu Archivo PCL:")
-                st.dataframe(df_pcl["forma"].dropna().unique())
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("📑 Métodos de Envío Encontrados en tu Archivo DTO:")
-                st.dataframe(df_dto["forma"].dropna().unique())
-            with col2:
-                st.write("📑 Métodos de Envío Encontrados en tu Archivo PCL:")
-                st.dataframe(df_pcl["forma"].dropna().unique())
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("💌 Datos hoja DTO")
-                st.dataframe(df_dto)
-                st.write("📅 Rango de fechas DTO")
-                st.write("Fecha mínima:", df_dto["FECHA_VISADO"].min())
-                st.write("Fecha máxima:", df_dto["FECHA_VISADO"].max())
-            with col2:
-                st.write("💌 Datos hoja PCL")
-                st.dataframe(df_pcl)
-                st.write("📅 Rango de fechas PCL")
-                st.write("Fecha mínima:", df_pcl["FECHA_VISADO"].min())
-                st.write("Fecha máxima:", df_pcl["FECHA_VISADO"].max())
 
+            # Convertir FECHA_VISADO a datetime, por si acaso
+            df_dto["FECHA_VISADO"] = pd.to_datetime(df_dto["FECHA_VISADO"], errors='coerce')
+            df_pcl["FECHA_VISADO"] = pd.to_datetime(df_pcl["FECHA_VISADO"], errors='coerce')
+
+            # Calcular rango global de fechas para los inputs
             fecha_min = min(df_dto["FECHA_VISADO"].min(), df_pcl["FECHA_VISADO"].min())
             fecha_max = max(df_dto["FECHA_VISADO"].max(), df_pcl["FECHA_VISADO"].max())
 
-            st.header("📅 Filtro por Fechas")
-            st.write("Selecciona la fecha de corte para analizar.")
             col1, col2 = st.columns(2)
             with col1:
-                fecha_inicio = st.date_input("Fecha Inicio", value=fecha_min)
+                fecha_inicio = st.date_input("📅 Fecha Inicio", value=fecha_min)
             with col2:
-                fecha_fin = st.date_input("Fecha Fin", value=fecha_max)
+                fecha_fin = st.date_input("📅 Fecha Fin", value=fecha_max)
 
-            # Filtrar solo por fechas
-            dto_filtrado_fechas = df_dto[
-                (df_dto["FECHA_VISADO"] >= pd.to_datetime(fecha_inicio)) &
-                (df_dto["FECHA_VISADO"] <= pd.to_datetime(fecha_fin))
-            ].copy()
+            ejecutar_filtro = st.button("🔍 Ejecutar Filtro", key="filtro_ans9", use_container_width=True)
 
-            pcl_filtrado_fechas = df_pcl[
-                (df_pcl["FECHA_VISADO"] >= pd.to_datetime(fecha_inicio)) &
-                (df_pcl["FECHA_VISADO"] <= pd.to_datetime(fecha_fin))
-            ].copy()
+            if ejecutar_filtro:
+                # Filtrar solo por fechas
+                dto_filtrado_fechas = df_dto[
+                    (df_dto["FECHA_VISADO"] >= pd.to_datetime(fecha_inicio)) &
+                    (df_dto["FECHA_VISADO"] <= pd.to_datetime(fecha_fin))
+                ].copy()
 
-            # Normalizar columna TERMINOS para evitar problemas
-            dto_filtrado_fechas["TERMINOS"] = dto_filtrado_fechas["TERMINOS"].astype(str).str.strip().str.upper()
-            pcl_filtrado_fechas["TERMINOS"] = pcl_filtrado_fechas["TERMINOS"].astype(str).str.strip().str.upper()
+                pcl_filtrado_fechas = df_pcl[
+                    (df_pcl["FECHA_VISADO"] >= pd.to_datetime(fecha_inicio)) &
+                    (df_pcl["FECHA_VISADO"] <= pd.to_datetime(fecha_fin))
+                ].copy()
 
-            # Filtrar por fechas y TERMINOS = "FUERA DE TERMINO"
-            dto_filtrado_fechas_fuera = dto_filtrado_fechas[
-                dto_filtrado_fechas["TERMINOS"] == "FUERA DE TERMINOS"
-            ]
+                # Normalizar columna TERMINOS para evitar problemas
+                dto_filtrado_fechas["TERMINOS"] = dto_filtrado_fechas["TERMINOS"].astype(str).str.strip().str.upper()
+                pcl_filtrado_fechas["TERMINOS"] = pcl_filtrado_fechas["TERMINOS"].astype(str).str.strip().str.upper()
 
-            pcl_filtrado_fechas_fuera = pcl_filtrado_fechas[
-                pcl_filtrado_fechas["TERMINOS"] == "FUERA DE TERMINOS"
-            ]
+                # Filtrar por TERMINOS = "FUERA DE TERMINOS"
+                dto_filtrado_fechas_fuera = dto_filtrado_fechas[
+                    dto_filtrado_fechas["TERMINOS"] == "FUERA DE TERMINOS"
+                ]
 
-            col1, col2 = st.columns(2)
+                pcl_filtrado_fechas_fuera = pcl_filtrado_fechas[
+                    pcl_filtrado_fechas["TERMINOS"] == "FUERA DE TERMINOS"
+                ]
 
-            with col1:
-                data_solo_fechas = to_excel_multiple_sheets(dto_filtrado_fechas, pcl_filtrado_fechas)
-                st.download_button(
-                    label="Descargar Archivo Solo fechas",
-                    data=data_solo_fechas,
-                    file_name="general.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+                st.success(f"✅ Filtrado aplicado para fechas: {fecha_inicio} - {fecha_fin}")
 
-            with col2:
-                data_fechas_fuera = to_excel_multiple_sheets(dto_filtrado_fechas_fuera, pcl_filtrado_fechas_fuera)
-                st.download_button(
-                    label="Descargar Filtro Fechas y fuera de término",
-                    data=data_fechas_fuera,
-                    file_name="filtrado_fechas_fuera_termino.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    data_solo_fechas = to_excel_multiple_sheets(dto_filtrado_fechas, pcl_filtrado_fechas)
+                    st.download_button(
+                        label="Descargar Archivo Solo fechas",
+                        data=data_solo_fechas,
+                        file_name="general.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+
+                with col2:
+                    data_fechas_fuera = to_excel_multiple_sheets(dto_filtrado_fechas_fuera, pcl_filtrado_fechas_fuera)
+                    st.download_button(
+                        label="Descargar Filtro Fechas y fuera de término",
+                        data=data_fechas_fuera,
+                        file_name="filtrado_fechas_fuera_termino.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+
+            else:
+                st.info("📥 Selecciona las fechas y presiona 'Ejecutar Filtro' para procesar los datos.")
 
         else:
             st.error("❌ No se encontraron hojas DTO y PCL en el archivo.")
     else:
         st.info("📥 Por favor, sube un archivo Excel para comenzar.")
+
 
 
 # PROCESO 2 - BASE COURIER --
