@@ -156,6 +156,11 @@ elif opcion == "📊 Base Courier":
         df_base_general_mod = df_base_general.copy()
         df_base_general_mod.loc[mask, "ESTADO_INFORME"] = "PENDIENTE ENTREGA DE GUIA"
 
+        # 🚀 Agregar columnas vacías nuevas
+        for col in ["OPORTUNIDAD FINAL", "OBSERVACIÓN", "DEFINICIÓN"]:
+            if col not in df_base_general_mod.columns:
+                df_base_general_mod[col] = ""
+
         st.write(f"🟢 IDs comunes: {len(ids_comunes)}")
         st.write(f"🟠 Registros con ESTADO_INFORME 'PENDIENTE' actualizados: {mask.sum()}")
 
@@ -187,7 +192,7 @@ elif opcion == "📊 Base Courier":
                     "EMPRESA": "EMPRESA",
                     "DIAS TRANSCURRIDOS HABILES": "DIAS TRANSCURRIDOS HABILES",
                     "ESTADO_INFORME": "ESTADO INFORME",
-                    "CALIFICACION": "CALIFICACION" 
+                    "CALIFICACION": "CALIFICACION"
                 }
 
                 columnas_a_incluir = [
@@ -202,7 +207,10 @@ elif opcion == "📊 Base Courier":
                     "EMPRESA",
                     "DIAS TRANSCURRIDOS HABILES",
                     "ESTADO_INFORME",
-                    "CALIFICACION"  
+                    "CALIFICACION",
+                    "OPORTUNIDAD FINAL",
+                    "OBSERVACIÓN",
+                    "DEFINICIÓN"
                 ]
 
                 for notif in notificadores:
