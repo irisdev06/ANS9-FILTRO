@@ -125,6 +125,10 @@ elif opcion == "📊 Base Courier":
         if "DTO" in xls1.sheet_names and "PCL" in xls1.sheet_names:
             df_dto = pd.read_excel(xls1, sheet_name="DTO")
             df_pcl = pd.read_excel(xls1, sheet_name="PCL")
+
+            # ✅ Agregamos la columna CALIFICACION
+            df_dto["CALIFICACION"] = "DTO"
+            df_pcl["CALIFICACION"] = "PCL"
         else:
             st.error("❌ El archivo 1 debe contener hojas DTO y PCL.")
             st.stop()
@@ -174,28 +178,31 @@ elif opcion == "📊 Base Courier":
                 columnas_renombrar = {
                     "ID_FURAT_FUREP": "ID DEL SINIESTRO",
                     "FECHA_VISADO": "FECHA VISADO",
-                    "NOMBRE_DEPARTAMENTO": "DEPARTAMENTO",
-                    "NOMBRE_MUNICIPIO": "MUNICIPIO",
+                    "NOMBRE_COMITE": "NOMBRE COMITE",
+                    "ID_TRABAJADOR": "ID TRABAJADOR",
+                    "FECHA_NOTIFICACION": "FECHA NOTIFICACION",
                     "RADICADO_SALIDA": "RAD DE SALIDA",
-                    "GUIA_ASEGURADO": "GUIA ASEGURADO",
-                    "TERMINOS": "TERMINO"
+                    "FECHA_RADICACION": "FECHA RADICACION",
+                    "NOTIFICADOR": "NOTIFICADOR",
+                    "EMPRESA": "EMPRESA",
+                    "DIAS TRANSCURRIDOS HABILES": "DIAS TRANSCURRIDOS HABILES",
+                    "ESTADO_INFORME": "ESTADO INFORME",
+                    "CALIFICACION": "CALIFICACION" 
                 }
 
                 columnas_a_incluir = [
-                    "NOTIFICADOR",
-                    "ID ASEGURADO",
                     "ID_FURAT_FUREP",
-                    "EVENTO",
                     "FECHA_VISADO",
-                    "NOMBRE_DEPARTAMENTO",
-                    "NOMBRE_MUNICIPIO",
-                    "DIRECCION",
-                    "DIVIPOLA",
-                    "COBERTURA",
+                    "NOMBRE_COMITE",
+                    "ID_TRABAJADOR",
+                    "FECHA_NOTIFICACION",
                     "RADICADO_SALIDA",
-                    "GUIA_ASEGURADO",
-                    "TERMINOS",
-                    "ESTADO_INFORME"
+                    "FECHA_RADICACION",
+                    "NOTIFICADOR",
+                    "EMPRESA",
+                    "DIAS TRANSCURRIDOS HABILES",
+                    "ESTADO_INFORME",
+                    "CALIFICACION"  
                 ]
 
                 for notif in notificadores:
